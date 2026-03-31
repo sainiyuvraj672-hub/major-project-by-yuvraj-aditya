@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="referrer" content="no-referrer-when-downgrade">
+    <title>FairVote Gateway | Login</title>
+    <link rel="stylesheet" href="auth.css">
+    <script src="https://accounts.google.com/gsi/client" async defer></script>
+</head>
+<body>
+    <div class="gateway-container">
+        <div class="auth-card">
+            <span style="font-size: 3rem;">🗳️</span>
+            <h1>FairVote Gateway</h1>
+            <p>Verify your identity to access the voting portal</p>
+
+            <div id="google-btn-container" style="display: flex; justify-content: center;"></div>
+
+            <div style="margin: 20px 0; color: #ccc;">──────── OR ────────</div>
+
+            <button class="btn-demo" onclick="location.href='index.html'" style="width: 100%; padding: 12px; background: #2d3436; color: white; border: none; border-radius: 8px; cursor: pointer;">
+                Enter as Guest
+            </button>
+
+            <div style="margin-top: 20px;">
+                <a href="home.html" style="color: #00d1b2; text-decoration: none; font-size: 0.9rem;">← Back to Home</a>
+            </div>
+        </div>
+    </div>
+    <script src="auth.js"></script>
+</body>
+</html>

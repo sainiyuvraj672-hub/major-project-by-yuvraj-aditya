@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Results - FairVote</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <nav class="navbar">
+        <a href="/" class="nav-logo">🗳️ FairVote</a>
+        <div class="nav-links">
+            <a href="/">Home</a>
+            <a href="admin.html">Admin</a>
+            <a href="index.html">Vote</a>
+            <a href="results.html">Results</a>
+        </div>
+    </nav>
+
+    <div class="container">
+        <h1>📊 Election Results</h1>
+        <input type="number" id="result-eid" value="1" placeholder="Enter Election ID">
+        <button onclick="viewResults()">Show Results</button>
+        <div id="results-display" style="margin-top:20px"></div>
+    </div>
+
+    <script>
+        async function viewResults() {
+            const eid = document.getElementById('result-eid').value;
+            if (!eid) return alert("Please enter an Election ID");
+
+            const display = document.getElementById('results-display');
+            display.innerHTML = '<p style="color: #888;">Fetching live data...</p>';
+
+            try {
+                // 1. Fetch Title
+                const titleRes = await fetch(`/api/election-details/${eid}`);
+                let electionTitle = "Election Results"; 
+                
+                if (titleRes.ok) {
+                    const titleData = await titleRes.json();
+                    if (titleData.title) electionTitle = titleData.title;
+                }
+
+                // 2. Fetch Candidates
+                const response = await fetch(`/api/candidates/${eid}`);
+                const candidates = await response.json();
+                
+                display.innerHTML = '';
+
+                if (!candidates || candidates.length === 0) {
+                    display.innerHTML = `
+                        <div style="margin-bottom: 20px; border-bottom: 2px solid #f0f0f0; padding-bottom: 15px;">
+                            <h2 style="color: #2d3436; text-transform: uppercase;">${electionTitle}</h2>
+                        </div>
+                        <p style="color: #ff4b5c;">No data found for this ID.</p>`;
+                    return;
+                }
+
+                const totalVotes = candidates.reduce((sum, c) => sum + (c.vote_count || 0), 0);
+                
+                display.innerHTML = `
+                    <div style="margin-bottom: 30px; border-bottom: 2px solid #f0f0f0; padding-bottom: 15px;">
+                        <h2 style="color: #2d3436; margin-bottom: 8px; text-transform: uppercase; letter-spacing: 1px; font-weight: 800;">
+                            ${electionTitle}
+                        </h2>
+                        <h3 style="color: #00d1b2; margin-top: 0; font-weight: 600;">Total Participation: ${totalVotes} Votes</h3>
+                    </div>
+                `;
+
+                candidates.sort((a, b) => (b.vote_count || 0) - (a.vote_count || 0)).forEach((c, index) => {
+                    const voteCount = c.vote_count || 0;
+                    const percentage = totalVotes > 0 ? (voteCount / totalVotes) * 100 : 0;
+                    
+                    const card = document.createElement('div');
+                    card.className = 'candidate-card';
+                    card.style.flexDirection = 'column'; 
+                    card.style.alignItems = 'stretch';
+                    card.style.padding = '20px';
+
+                    card.innerHTML = `
+                        <div style="display: flex; justify-content: space-between; margin-bottom: 12px; align-items: center;">
+                            <span>${index === 0 && voteCount > 0 ? '👑' : ''} <strong>${c.party_name}</strong></span>
+                            <span style="color: #00d1b2; font-weight: 800;">${voteCount} Votes</span>
+                        </div>
+                        <div style="background: #eee; height: 10px; border-radius: 5px; width: 100%; overflow: hidden;">
+                            <div style="background: #ff4b5c; height: 100%; width: ${percentage}%; transition: width 0.8s ease;"></div>
+                        </div>
+                    `;
+                    display.appendChild(card);
+                });
+            } catch (err) {
+                console.error(err);
+                alert("Server Error! Make sure node server.js is running.");
+            }
+        }
+    </script>
+</body>
+</html>

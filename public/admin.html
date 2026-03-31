@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Admin - FairVote</title>
+    <link rel="stylesheet" href="style.css">
+    
+    <!-- ADDED: jsPDF Library for generating Voter ID Cards -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+
+    <style>
+        /* Professional Wide Layout */
+        body { 
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+            background-color: #f5f7fa; 
+            margin: 0; 
+        }
+
+        .container { 
+            max-width: 900px; 
+            margin: 40px auto; 
+            padding: 20px;
+            text-align: center; 
+        }
+
+        .admin-box { 
+            background: white; 
+            padding: 40px; 
+            border-radius: 12px; 
+            box-shadow: 0 4px 20px rgba(0,0,0,0.08); 
+            margin-bottom: 30px; 
+        }
+
+        h1 { color: #333; margin-bottom: 40px; font-weight: 700; }
+        h3 { 
+            color: #444; 
+            margin-top: 0; 
+            border-bottom: 2px solid #00d1b2; 
+            display: inline-block; 
+            padding-bottom: 5px; 
+            margin-bottom: 20px; 
+        }
+
+        input { 
+            display: block; 
+            width: 100%; 
+            max-width: 500px; 
+            margin: 15px auto; 
+            padding: 14px; 
+            border: 1px solid #e1e4e8; 
+            border-radius: 8px; 
+            font-size: 16px;
+            box-sizing: border-box; 
+        }
+
+        button { 
+            background: #00d1b2; 
+            color: white; 
+            border: none; 
+            padding: 14px 40px; 
+            border-radius: 8px; 
+            cursor: pointer; 
+            font-weight: 600; 
+            font-size: 16px;
+            margin-top: 10px;
+            box-shadow: 0 4px 6px rgba(0, 209, 178, 0.2);
+            transition: 0.2s;
+        }
+
+        button:hover { 
+            background: #00b89c; 
+            transform: translateY(-1px);
+        }
+
+        #voter-camera {
+            border: 3px solid #00d1b2;
+            border-radius: 10px;
+            background: #000;
+            display: none;
+            margin: 20px auto;
+        }
+
+        hr { border: 0; border-top: 1px solid #eee; margin: 40px 0; }
+    </style>
+</head>
+<body class="light-theme">
+    <nav class="navbar">
+        <a href="/" class="nav-logo">🗳️ FairVote</a>
+        <div class="nav-links">
+            <a href="/">Home</a>
+            <a href="admin.html">Admin</a>
+            <a href="index.html">Vote</a>
+            <a href="results.html">Results</a>
+        </div>
+    </nav>
+
+    <div class="container">
+        <h1>🛡️ Admin Control Center</h1>
+        
+        <div class="admin-box">
+            <h3>1. Initialize New Election</h3>
+            <input type="text" id="new-title" placeholder="Election Title (e.g. BCA Council)">
+            <button onclick="createElection()">Create Election</button>
+        </div>
+
+        <div class="admin-box">
+            <h3>Current Election Context</h3>
+            <input type="number" id="election-id-context" value="1">
+            
+            <hr>
+
+            <h3>2. Add Candidates</h3>
+            <input type="text" id="new-candidate-name" placeholder="Candidate/Party Name">
+            <button onclick="addCandidate()">Add Candidate</button>
+
+            <hr>
+
+            <h3>3. Register Voters (Biometric)</h3>
+            
+            <video id="voter-camera" width="320" height="240" autoplay></video>
+
+            <input type="text" id="new-voter-id" placeholder="Voter ID (Enrollment No)">
+            <input type="text" id="new-voter-name" placeholder="Voter Full Name">
+            
+            <div style="display: flex; gap: 10px; justify-content: center;">
+                <button type="button" id="btn-camera" onclick="openCamera()" style="background: #4a4a4a;">Open Scanner</button>
+                <button onclick="addVoter()">Register Voter</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Security Lock
+        window.onload = function() {
+            const auth = prompt("Enter Admin Password:");
+            if (auth !== "admin123") { window.location.href = "/"; }
+        };
+
+        // --- CAMERA LOGIC ---
+        let stream = null;
+
+        async function openCamera() {
+            const video = document.getElementById('voter-camera');
+            const btn = document.getElementById('btn-camera');
+            try {
+                stream = await navigator.mediaDevices.getUserMedia({ video: true });
+                video.srcObject = stream;
+                video.style.display = "block"; 
+                btn.innerText = "Scanner Ready ✅";
+                btn.style.background = "#2ecc71";
+            } catch (err) {
+                alert("Camera Error: Please allow permissions in your browser.");
+            }
+        }
+
+        // --- DATABASE LOGIC ---
+        async function createElection() {
+            const title = document.getElementById('new-title').value;
+            const res = await fetch('/api/admin/create-election', { 
+                method: 'POST', 
+                headers: {'Content-Type': 'application/json'}, 
+                body: JSON.stringify({ title }) 
+            });
+            const data = await res.json();
+            alert("Success! Election ID is: " + data.electionId);
+            document.getElementById('election-id-context').value = data.electionId;
+        }
+
+        async function addCandidate() {
+            const name = document.getElementById('new-candidate-name').value;
+            const eid = document.getElementById('election-id-context').value;
+            const res = await fetch('/api/admin/add-candidate', { 
+                method: 'POST', 
+                headers: {'Content-Type': 'application/json'}, 
+                body: JSON.stringify({ party_name: name, election_id: eid }) 
+            });
+            const data = await res.json();
+            alert(data.message);
+        }
+
+        // --- UPDATED: Voter Registration & PDF Generation ---
+        async function addVoter() {
+            const vId = document.getElementById('new-voter-id').value.trim();
+            const vName = document.getElementById('new-voter-name').value.trim();
+            const eid = document.getElementById('election-id-context').value.trim();
+
+            if (!stream) {
+                return alert("Biometric Error: Please open the scanner first!");
+            }
+            if (!vId || !vName || !eid) {
+                return alert("Error: Please fill in all fields.");
+            }
+
+            // Simulate Retina Hash
+            const retina_hash = "RETINA_" + Math.random().toString(36).substr(2, 9).toUpperCase();
+
+            try {
+                const res = await fetch('/api/admin/add-voter', { 
+                    method: 'POST', 
+                    headers: {'Content-Type': 'application/json'}, 
+                    body: JSON.stringify({ 
+                        voter_id: vId, 
+                        name: vName, 
+                        election_id: eid,
+                        retina_hash: retina_hash 
+                    }) 
+                });
+                
+                const data = await res.json();
+                
+                if(res.ok && data.success) {
+                    alert(`Voter Registered!\nName: ${vName}\nHash: ${retina_hash}`);
+                    
+                    // Generate PDF Card
+                    const confirmDownload = confirm("Would you like to download the Voter Registration Card?");
+                    if (confirmDownload) {
+                        generateVoterCard(vName, vId, eid, retina_hash);
+                    }
+
+                    // Turn off camera
+                    if (stream) {
+                        stream.getTracks().forEach(track => track.stop());
+                        document.getElementById('voter-camera').style.display = "none";
+                        stream = null;
+                        document.getElementById('btn-camera').innerText = "Open Scanner";
+                        document.getElementById('btn-camera').style.background = "#4a4a4a";
+                    }
+
+                    // Clear Inputs
+                    document.getElementById('new-voter-id').value = "";
+                    document.getElementById('new-voter-name').value = "";
+                } else {
+                    alert("Error: " + (data.error || "Check server logs."));
+                }
+            } catch (err) {
+                alert("Connection Error.");
+            }
+        }
+
+        // --- NEW: PDF Generation Logic ---
+        function generateVoterCard(name, vId, eId, hash) {
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF({ orientation: 'landscape', unit: 'mm', format: [120, 80] }); // Wallet sized card
+
+            // Card Design
+            doc.setFillColor(0, 209, 178); // FairVote Green
+            doc.rect(0, 0, 120, 15, 'F');
+            
+            doc.setTextColor(255, 255, 255);
+            doc.setFontSize(16);
+            doc.text("FAIRVOTE - REGISTRATION CARD", 60, 10, { align: 'center' });
+
+            doc.setTextColor(0, 0, 0);
+            doc.setFontSize(12);
+            doc.text(`Voter Name: ${name}`, 10, 25);
+            doc.text(`Voter ID: ${vId}`, 10, 35);
+            doc.text(`Election Context ID: ${eId}`, 10, 45);
+            doc.text(`Biometric Hash: ${hash}`, 10, 55);
+            
+            doc.setFontSize(8);
+            doc.setTextColor(100, 100, 100);
+            doc.text("Status: VERIFIED & REGISTERED", 10, 65);
+            doc.text(`Generated on: ${new Date().toLocaleString()}`, 10, 70);
+
+            // Decorative Border
+            doc.setDrawColor(0, 209, 178);
+            doc.setLineWidth(1);
+            doc.rect(2, 2, 116, 76);
+
+            doc.save(`VoterCard_${vId}.pdf`);
+        }
+    </script>
+</body>
+</html>

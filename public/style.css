@@ -1,0 +1,210 @@
+/* --- 1. GLOBAL VARIABLES & RESET --- */
+:root {
+    --primary: #00d1b2;    /* Teal/Turquoise */
+    --accent: #ff4b5c;     /* Red/Coral */
+    --bg-light: #ffffff;
+    --bg-gray: #f8f9fa;
+    --text-dark: #2d3436;
+    --border: #eaeaea;
+}
+
+* {
+    box-sizing: border-box;
+}
+
+body { 
+    margin: 0; 
+    font-family: 'Inter', -apple-system, sans-serif; 
+    background-color: var(--bg-gray); /* Subtle gray background for contrast */
+    color: var(--text-dark);
+    line-height: 1.6;
+}
+
+/* --- 2. UNIVERSAL NAVBAR --- */
+.navbar {
+    position: fixed; 
+    top: 0; 
+    width: 100%; 
+    height: 70px;
+    background: white; 
+    display: flex; 
+    justify-content: space-between;
+    align-items: center; 
+    padding: 0 8%; 
+    border-bottom: 1px solid var(--border); 
+    z-index: 1000;
+}
+
+.nav-logo { 
+    font-size: 1.5rem; 
+    font-weight: 800; 
+    color: var(--primary); 
+    text-decoration: none; 
+}
+
+.nav-links a { 
+    text-decoration: none; 
+    color: #555; 
+    margin-left: 25px; 
+    font-weight: 500; 
+    font-size: 0.9rem; 
+    transition: 0.3s; 
+}
+
+.nav-links a:hover { 
+    color: var(--primary); 
+}
+
+.btn-signup { 
+    background: var(--text-dark); 
+    color: white !important; 
+    padding: 10px 20px; 
+    border-radius: 25px; 
+}
+
+/* --- 3. HOME PAGE HERO SECTION --- */
+.hero-section { 
+    padding: 160px 10% 80px; 
+    text-align: center; 
+    background: white; 
+}
+
+.hero-section h1 { 
+    font-size: 3.5rem; 
+    margin-bottom: 20px; 
+    font-weight: 800;
+}
+
+.highlight { 
+    color: var(--primary); 
+}
+
+.hero-section p {
+    font-size: 1.2rem;
+    color: #636e72;
+    max-width: 700px;
+    margin: 0 auto 40px;
+}
+
+/* --- 4. PROFESSIONAL CONTAINERS (Admin, Vote, Results) --- */
+.container {
+    background: white;
+    padding: 40px;
+    border-radius: 12px;
+    width: 95%;
+    max-width: 500px;
+    text-align: center;
+    margin: 120px auto 50px; /* Centered with space for navbar */
+    box-shadow: 0 10px 40px rgba(0,0,0,0.06);
+    border: 1px solid var(--border);
+}
+
+h1, h2, h3 { 
+    color: var(--text-dark); 
+    margin-top: 0;
+}
+
+/* --- 5. INPUTS & BUTTONS --- */
+input { 
+    width: 100%; 
+    padding: 12px; 
+    margin-bottom: 15px; 
+    border: 1px solid #dfe6e9; 
+    border-radius: 6px; 
+    font-size: 1rem;
+    outline: none;
+    transition: border-color 0.3s;
+}
+
+input:focus {
+    border-color: var(--primary);
+}
+
+button { 
+    padding: 14px 25px; 
+    border-radius: 6px; 
+    cursor: pointer; 
+    font-weight: bold; 
+    border: none; 
+    transition: 0.3s;
+    font-size: 1rem;
+}
+
+.btn-primary, .admin-box button { 
+    background: var(--primary); 
+    color: white; 
+    width: 100%; 
+    margin-bottom: 10px;
+}
+
+.btn-primary:hover, .admin-box button:hover { 
+    background: #00b89c; 
+}
+
+.login-btn { 
+    background: var(--accent); 
+    color: white; 
+    width: 100%; 
+}
+
+.login-btn:hover { 
+    background: #e84353; 
+}
+
+.btn-secondary {
+    background: white;
+    border: 1px solid #ccc;
+    margin-left: 10px;
+}
+
+/* --- 6. CANDIDATE CARDS --- */
+.candidate-card { 
+    background: var(--bg-gray); 
+    border: 1px solid var(--border);
+    margin: 12px 0; 
+    padding: 15px; 
+    border-radius: 8px; 
+    display: flex; 
+    justify-content: space-between; 
+    align-items: center; 
+}
+
+.vote-btn { 
+    background: var(--primary); 
+    color: white; 
+    padding: 8px 15px; 
+    font-size: 0.85rem; 
+    width: auto;
+}
+
+/* --- 7. FEATURES GRID (Home Page) --- */
+.features { 
+    display: flex; 
+    justify-content: center; 
+    gap: 30px; 
+    padding: 0 10% 80px; 
+    background: white;
+}
+
+.feature-card { 
+    background: var(--bg-gray); 
+    padding: 30px; 
+    border-radius: 12px; 
+    width: 300px; 
+    text-align: center;
+}
+
+/* --- 8. UTILS --- */
+.hidden { display: none !important; }
+
+hr { 
+    border: 0; 
+    border-top: 1px solid var(--border); 
+    margin: 25px 0; 
+}
+
+/* Add this to style.css */
+.nav-links a:active, .nav-links a:focus {
+    color: var(--primary);
+    border-bottom: 2px solid var(--primary);
+}
